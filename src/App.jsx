@@ -3,28 +3,78 @@ import "./app.scss";
 import parsedData from "./common/dataSource";
 function App() {
   const [data, setData] = useState({
-    results:[];
+    //results:[];
   });
-
+  const [users, setUsers] = useState([]);
+  const [searchData, setSearchData] = useState("");
   const { results } = data;
 
   useEffect(() => {
-    console.log("fetching data");
-    setData(parsedData);
+    /* console.log("fetching data");
+    fetch("https://randomuser.me/api/?inc=name,picture&results=55")
+      .then((data) => {
+        return data.json();
+      })
+      .then((data) => {
+        setData(data);
+      })
+      .catch((err) => {
+        console.log(err.message);
+      }); */
+
+    (async () => {
+      console.log("hello");
+      const rawData = await fetch(
+        "https://randomuser.me/api/?inc=name,picture&results=55"
+      );
+      const data = await rawData.json();
+      setData(data);
+      setUsers(data?.results || []);
+    })();
   }, []);
+
+  useEffect(() => {
+    const newUsers = results?.filter((user) => {
+      const fullName = `${user.name.title}${user.name.first}${user.name.last}`;
+      if (fullName.toLowerCase().replaceAll(" ", "").includes(searchData)) {
+        return true;
+      }
+
+      return false;
+    });
+    console.log(newUsers);
+    setUsers(newUsers || []);
+  }, [searchData]);
   return (
     <div id="app">
       <h1>List of users</h1>
-
       <div className="container">
-        <div className="users row"></div>
+        <input
+          id="filter"
+          className="form-control mb-3 form-control-lg"
+          placeholder="Type to filer..."
+          onChange={(event) => {
+            setSearchData(event.target.value.toLowerCase().replaceAll(" ", ""));
+          }}
+        />
 
-        {results?.map((item, index) => {
-          return <h1 key={`item-${index}`}>Hello</h1>;
-        })}
-        <div className="col-2 user">
-          <img />
-          <h3>name</h3>
+        <div className="users row">
+          {users.map((item, index) => {
+            const finalName = `${item.name.title} ${item.name.first} ${item.name.last}`;
+            return (
+              <div className="col-2 user" key={`item-${index}`}>
+                <img src={item.picture.thumbnail} alt={finalName} />
+                <h3>{finalName}</h3>
+                <button
+                  onClick={async () => {
+                    await console.log("Show me");
+                  }}
+                >
+                  Show me
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
